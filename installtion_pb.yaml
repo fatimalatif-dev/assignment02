@@ -1,0 +1,75 @@
+---
+- name: Installation of Docker and docker compose
+  hosts: localhost
+  become: true
+  
+  tasks: 
+    - name: Check if Docker is installed
+      command: docker -v 
+      register: isdocker_installed
+      ignore_errors: true
+
+    - name: Get the docker status
+      debug:
+        msg: "Docker installation status: {{ isdocker_installed.rc }}"
+
+    - name : installed docker based on condition
+      block:   
+        - name: Update apt cache 
+          ansible.builtin.apt:
+            update_cache: yes
+
+        - name: Add Docker's dependencies
+          ansible.builtin.apt:
+            name:
+              - ca-certificates 
+              - curl
+              - gnupg
+              - lsb-release
+            state: latest
+            update_cache: yes
+                
+        - name: Add GPG key
+          ansible.builtin.shell:
+            cmd: |
+              sudo install -m 0755 -d /etc/apt/keyrings
+              curl -fsSL https://download.docker.com/linux/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+              sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+        - name: Add the repository to Apt sources
+          ansible.builtin.shell:
+              cmd: |
+                echo \
+                "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu  $(lsb_release -cs) stable" \
+                > /etc/apt/sources.list.d/docker.list
+
+        - name: Update apt cache
+          ansible.builtin.apt:
+            update_cache: yes
+
+        - name: Install Docker packages
+          ansible.builtin.apt:
+                name:
+                  - docker-ce 
+                  - docker-ce-cli 
+                  - containerd.io 
+                  - docker-buildx-plugin 
+                  - docker-compose-plugin
+                state: latest
+                update_cache: yes
+          
+        - name: Ensure Docker group exists
+          become: yes
+          ansible.builtin.group:
+            name: docker
+            state: present
+        
+        - name: Add User to docker group
+          become: yes
+          ansible.builtin.user:
+            name: "{{ ansible_user_id}}"
+            groups: docker 
+            append: true 
+
+      when: isdocker_installed.rc != 0
+      

@@ -1,0 +1,19 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for roles/docker_role
+gpg_key : https://download.docker.com/linux/gpg
+repo_url : https://download.docker.com/linux/ubuntu 
+
+
+docker_packages:
+  - docker-ce 
+  - docker-ce-cli 
+  - containerd.io 
+  - docker-buildx-plugin 
+  - docker-compose-plugin
+
+docker_dependencies:
+    - ca-certificates 
+    - curl
+    - gnupg
+    - lsb-release

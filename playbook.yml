@@ -1,0 +1,7 @@
+- name: Installation of Docker and docker compose
+  hosts: localhost
+  become: true
+  gather_facts: true
+  roles:
+    - ../roles/docker_role
+  
