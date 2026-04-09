@@ -1,6 +1,6 @@
 locals {
     project = "assignment"
-    env= "dev"
+    env= terraform.workspace
 }
 
 module "vpc" {
